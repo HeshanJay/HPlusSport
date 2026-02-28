@@ -1,4 +1,5 @@
 using HPlusSport.API.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -110,6 +111,27 @@ app.MapDelete("/products/{id}", async (ShopContext _context, int id) =>
     await _context.SaveChangesAsync();
 
     return Results.Ok(product);
+});
+
+app.MapPost("/products/Delete", async (ShopContext _context, [FromQuery] int[] ids) =>
+{
+    var products = new List<Product>();
+    foreach (var id in ids)
+    {
+        var product = await _context.Products.FindAsync(id);
+
+        if (product == null)
+        {
+            return Results.NotFound();
+        }
+
+        products.Add(product);
+    }
+
+    _context.Products.RemoveRange(products);
+    await _context.SaveChangesAsync();
+
+    return Results.Ok(products);
 });
 
 app.Run();
